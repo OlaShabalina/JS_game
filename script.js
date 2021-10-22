@@ -10,6 +10,24 @@ const cellSize = 100; // each sell in the game grid will be 100 * 100 px
 const cellGap = 3; // gap between cells
 const gameGrid = [];
 
+//  mouse 
+const mouse = {
+  x: 10,
+  y: 10,
+  width: 0.1,
+  height: 0.1,
+}
+let canvasPosition = canvas.getBoundingClientRect();
+
+canvas.addEventListener('mousemove', function(e) {
+  mouse.x = e.x - canvasPosition.left;
+  mouse.y = e.y - canvasPosition.top;
+});
+canvas.addEventListener('mouseleave', function () { 
+  mouse.x = undefined;
+  mouse.y = undefined;
+ })
+
 // game board
 const controlsBar = {
   width: canvas.width,
@@ -25,8 +43,11 @@ class Cell {
     this.height = cellSize;
   }
   draw() {
-    ctx.strokeStyle = 'black';
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    // if mouse is overlaping the cell -> the cell gets a black strokeStyle
+    if (mouse.x && mouse.y && collision(this, mouse)) {
+      ctx.strokeStyle = 'black';
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
   }
 }
 
@@ -57,6 +78,7 @@ function handleGameGrid() {
 // resources
 // utilities
 function animate() { 
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = 'blue';
   ctx.fillRect(0,0, controlsBar.width, controlsBar.height); // starting from top left corner till the width of game board
   handleGameGrid();
@@ -65,4 +87,15 @@ function animate() {
 
 animate();
 
-console.log(gameGrid);
+// functions to detect collisions
+function collision(first, second) {
+
+  // checking overlapping of horizontal and vertical positions of first and second objects
+  if (  !( first.x > second.x + second.width || 
+           first.x + first.width < second.x ||
+           first.y > second.y + second.height ||
+           first.y + first.height < second.y )
+  ) {
+    return true;
+  }
+}
