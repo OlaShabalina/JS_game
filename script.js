@@ -9,6 +9,8 @@ canvas.height = 600;
 const cellSize = 100; // each sell in the game grid will be 100 * 100 px
 const cellGap = 3; // gap between cells
 const gameGrid = [];
+const defenders = [];
+let numberOfResources = 401; // how much resources we give to the player initially
 
 //  mouse 
 const mouse = {
@@ -75,6 +77,56 @@ function handleGameGrid() {
 
 // project units
 // defenders
+class Defender {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.width = cellSize;
+    this.height = cellSize;
+    this.shooting = false;
+    this.health = 100; // defenders lose health when they collide with enemies
+    this.projectiles = []; 
+    this.timer = 0; 
+  }
+  draw() {
+    // if mouse is overlaping the cell -> the cell gets a red strokeStyle
+    ctx.strokeStyle = 'red';
+    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    ctx.fillStyle = 'red';
+    ctx.font = '30px Arial';
+    ctx.fillText( Math.floor(this.health), this.x + 15, this.y ); // show health 
+  }
+}
+
+canvas.addEventListener('click', function () { 
+  // the value of the closest horizontal position to the left
+  const gridPositionX = mouse.x - (mouse.x % cellSize);
+
+  // the value of the closest vertical position to the top
+  const gridPositionY = mouse.y - (mouse.y % cellSize);
+
+  // we don't place it on the grid if it's inside top area
+  if (gridPositionY < cellSize) return;
+
+  // every time we place a defender we will deduct this amount from total amount of resources
+  let defenderCost = 100; 
+
+  if (numberOfResources > defenderCost) {
+    defenders.push(new Defender(gridPositionX, gridPositionY));
+    numberOfResources -= defenderCost;
+  }
+
+});
+
+
+function handleDefenders() {
+  for (let i = 0; i < defenders.length; i++) {
+    defenders[i].draw();
+  }
+}
+
+
+
 // resources
 // utilities
 function animate() { 
@@ -82,6 +134,7 @@ function animate() {
   ctx.fillStyle = 'blue';
   ctx.fillRect(0,0, controlsBar.width, controlsBar.height); // starting from top left corner till the width of game board
   handleGameGrid();
+  handleDefenders();
   requestAnimationFrame(animate); // to run over and over
  }
 
