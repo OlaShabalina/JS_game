@@ -11,6 +11,11 @@ const cellGap = 3; // gap between cells
 const gameGrid = [];
 const defenders = [];
 let numberOfResources = 400; // how much resources we give to the player initially
+const enemies = [];
+const enemyPositions = [];
+let enemiesInterval = 600; // how often new enemies appear on the grid  
+let frame = 0; // time count for the game
+let gameOver = false;
 
 //  mouse 
 const mouse = {
@@ -93,7 +98,7 @@ class Defender {
     ctx.strokeStyle = 'red';
     ctx.strokeRect(this.x, this.y, this.width, this.height);
     ctx.fillStyle = 'green';
-    ctx.font = '30px Arial';
+    ctx.font = '30px Cairo';
     ctx.fillText( Math.floor(this.health), this.x + 20, this.y + 30 ); // show health 
   }
 }
@@ -133,13 +138,67 @@ function handleDefenders() {
   }
 }
 
+// enemies
+class Enemy {
+  constructor(verticalPosition) {
+    this.x = canvas.width;
+    this.y = verticalPosition;
+    this.width = cellSize;
+    this.height = cellSize; 
+    this.speed = Math.random() * 0.2 + 0.4;
+    this.movement = this.speed;
+    this.health = 100;
+    this.maxHealth = this.health;
+  }
+  update() {
+    // enemy will walk from right to left
+    this.x -= this.movement;
+  }
+  draw() {
+    ctx.fillStyle = 'red';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.fillStyle = 'black';
+    ctx.font = '30px Cairo';
+    ctx.fillText( Math.floor(this.health), this.x + 20, this.y + 30 ); // show health 
+  }
+}
+
+function handleEnemies() {
+  for (let i = 0; i < enemies.length; i++) {
+    enemies[i].update();
+    enemies[i].draw();
+
+    // if enemy reaches left side of the grid - game is over
+    if (enemies[i].x < 0) {
+      gameOver = true;
+    }
+  }
+
+  // every time frame count is passing 100, we add a new enemy to the game
+  if (frame % enemiesInterval === 0) {
+    let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize;
+    // adding new enemy to the grid
+    enemies.push(new Enemy(verticalPosition));
+    // giving that new enemy a position by adding his vertical position to the enemy position array
+    enemyPositions.push(verticalPosition);
+    if (enemiesInterval > 120) enemiesInterval -= 50; // reduce interval as the time progresses
+  }
+}
+
+
 // resources
 // utilities
 
 function handleGameStatus() {
   ctx.fillStyle = 'white';
-  ctx.font = '30px Arial';
-  ctx.fillText('Resources: ' + numberOfResources, 20, 50);
+  ctx.font = '30px Cairo';
+
+  // game over declaration
+  if (gameOver) {
+    ctx.fillStyle = 'black';
+    ctx.font = '60px Cairo';
+    ctx.fillText('GAME OVER', 135, 330);
+  }
 }
 
 
@@ -150,8 +209,13 @@ function animate() {
   ctx.fillRect(0,0, controlsBar.width, controlsBar.height); // starting from top left corner till the width of game board
   handleGameGrid();
   handleDefenders();
+  handleEnemies();
   handleGameStatus();
-  requestAnimationFrame(animate); // to run over and over
+  ctx.fillText('Resources: ' + numberOfResources, 20, 50);
+  frame++; // time count is increasing during the game
+
+  // we only continue running animation if the game is not over
+  if (!gameOver) requestAnimationFrame(animate); // to run over and over
  }
 
 animate();
