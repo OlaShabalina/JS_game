@@ -10,7 +10,7 @@ const cellSize = 100; // each sell in the game grid will be 100 * 100 px
 const cellGap = 3; // gap between cells
 const gameGrid = [];
 const defenders = [];
-let numberOfResources = 401; // how much resources we give to the player initially
+let numberOfResources = 400; // how much resources we give to the player initially
 
 //  mouse 
 const mouse = {
@@ -92,9 +92,9 @@ class Defender {
     // if mouse is overlaping the cell -> the cell gets a red strokeStyle
     ctx.strokeStyle = 'red';
     ctx.strokeRect(this.x, this.y, this.width, this.height);
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = 'green';
     ctx.font = '30px Arial';
-    ctx.fillText( Math.floor(this.health), this.x + 15, this.y ); // show health 
+    ctx.fillText( Math.floor(this.health), this.x + 20, this.y + 30 ); // show health 
   }
 }
 
@@ -108,10 +108,18 @@ canvas.addEventListener('click', function () {
   // we don't place it on the grid if it's inside top area
   if (gridPositionY < cellSize) return;
 
+  // before placing a defender we need to check if there is one in that cell already 
+  // -- this is to prevent using resources while placing defender on the same spot
+  for (let i = 0; i < defenders.length; i++) {
+
+    // checking if their x and y coordinates are the same as gridPositionX and gridPositionY
+    if (defenders[i].x === gridPositionX && defenders[i].y === gridPositionY) return;
+  }
+
   // every time we place a defender we will deduct this amount from total amount of resources
   let defenderCost = 100; 
 
-  if (numberOfResources > defenderCost) {
+  if (numberOfResources >= defenderCost) {
     defenders.push(new Defender(gridPositionX, gridPositionY));
     numberOfResources -= defenderCost;
   }
@@ -125,16 +133,24 @@ function handleDefenders() {
   }
 }
 
-
-
 // resources
 // utilities
+
+function handleGameStatus() {
+  ctx.fillStyle = 'white';
+  ctx.font = '30px Arial';
+  ctx.fillText('Resources: ' + numberOfResources, 20, 50);
+}
+
+
+// activating all the elements 
 function animate() { 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = 'blue';
   ctx.fillRect(0,0, controlsBar.width, controlsBar.height); // starting from top left corner till the width of game board
   handleGameGrid();
   handleDefenders();
+  handleGameStatus();
   requestAnimationFrame(animate); // to run over and over
  }
 
