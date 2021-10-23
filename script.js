@@ -135,6 +135,26 @@ canvas.addEventListener('click', function () {
 function handleDefenders() {
   for (let i = 0; i < defenders.length; i++) {
     defenders[i].draw();
+    for (let j = 0; j < enemies.length; j++) {
+      if (collision(defenders[i], enemies[j])) {
+
+        // if there is a collusion, enemy will stop moving beond defender position
+        enemies[j].movement = 0;
+        // and defender will start losing health
+        defenders[i].health -= 0.2;
+      }
+
+      //  if defender has no health left we remove that defender from the array
+      if (defenders[i] && defenders[i].health <= 0) {
+        defenders.splice(i, 1);
+
+        // to make sure next element in the array doesn't get skipped we reduce i by 1
+        i--;
+
+        // if defender is gone, enemy will move forward again
+        enemies[j].movement = enemies[j].speed; 
+      }
+    }
   }
 }
 
@@ -145,7 +165,7 @@ class Enemy {
     this.y = verticalPosition;
     this.width = cellSize;
     this.height = cellSize; 
-    this.speed = Math.random() * 0.2 + 0.4;
+    this.speed = Math.random() * 0.2 + 4;
     this.movement = this.speed;
     this.health = 100;
     this.maxHealth = this.health;
@@ -190,14 +210,15 @@ function handleEnemies() {
 // utilities
 
 function handleGameStatus() {
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = 'gold';
   ctx.font = '30px Cairo';
+  ctx.fillText('Resources: ' + numberOfResources, 20, 50);
 
   // game over declaration
   if (gameOver) {
     ctx.fillStyle = 'black';
-    ctx.font = '60px Cairo';
-    ctx.fillText('GAME OVER', 135, 330);
+    ctx.font = '100px Cairo'
+    ctx.fillText('GAME OVER', 200, 330);
   }
 }
 
@@ -211,7 +232,6 @@ function animate() {
   handleDefenders();
   handleEnemies();
   handleGameStatus();
-  ctx.fillText('Resources: ' + numberOfResources, 20, 50);
   frame++; // time count is increasing during the game
 
   // we only continue running animation if the game is not over
