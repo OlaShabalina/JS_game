@@ -8,14 +8,16 @@ canvas.height = 600;
 // global variables
 const cellSize = 100; // each sell in the game grid will be 100 * 100 px
 const cellGap = 3; // gap between cells
-const gameGrid = [];
-const defenders = [];
 let numberOfResources = 400; // how much resources we give to the player initially
-const enemies = [];
-const enemyPositions = [];
 let enemiesInterval = 600; // how often new enemies appear on the grid  
 let frame = 0; // time count for the game
 let gameOver = false;
+
+const gameGrid = [];
+const defenders = [];
+const enemies = [];
+const enemyPositions = [];
+const projectiles = [];
 
 //  mouse 
 const mouse = {
@@ -80,7 +82,47 @@ function handleGameGrid() {
   }
 }
 
-// project units
+// projectiles
+class Projectile {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y; 
+    this.width = 10;
+    this.height = 10;
+    this.power = 20;
+    this.speed = 5;
+  }
+  update() {
+    this.x += this.speed;
+  }
+  draw() {
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    // draw a circle 
+    ctx.arc(this.x, this.y, this.width, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function handleProjectiles() {
+  for (let i = 0; i < projectiles.length; i++) {
+    projectiles[i].update();
+    projectiles[i].draw();
+
+    // make sure we can only hit enemies when they are fully visible on the screen
+    if (projectiles[i] && projectiles[i].x > (canvas.width - cellSize)) {
+
+      // remove that projectile
+      projectiles.splice(i, 1);
+      // once projectile is removed we make sure we don't skip the next one
+      i--; 
+
+      console.log('projectiles ' + projectiles.length);
+    }
+  }
+}
+
+
 // defenders
 class Defender {
   constructor(x, y) {
@@ -100,6 +142,14 @@ class Defender {
     ctx.fillStyle = 'green';
     ctx.font = '30px Cairo';
     ctx.fillText( Math.floor(this.health), this.x + 20, this.y + 30 ); // show health 
+  }
+  update() {
+    this.timer++;
+
+    // every time when times exceeds 100 new projectile is added to the defender with the same coordinates as defender
+    if (this.timer % 100 === 0) {
+      projectiles.push(new Projectile(this.x + 70, this.y + 50));
+    }
   }
 }
 
@@ -134,7 +184,10 @@ canvas.addEventListener('click', function () {
 
 function handleDefenders() {
   for (let i = 0; i < defenders.length; i++) {
+
     defenders[i].draw();
+    defenders[i].update();
+
     for (let j = 0; j < enemies.length; j++) {
       if (collision(defenders[i], enemies[j])) {
 
@@ -165,7 +218,7 @@ class Enemy {
     this.y = verticalPosition;
     this.width = cellSize;
     this.height = cellSize; 
-    this.speed = Math.random() * 0.2 + 4;
+    this.speed = Math.random() * 0.2 + 0.4;
     this.movement = this.speed;
     this.health = 100;
     this.maxHealth = this.health;
@@ -230,6 +283,7 @@ function animate() {
   ctx.fillRect(0,0, controlsBar.width, controlsBar.height); // starting from top left corner till the width of game board
   handleGameGrid();
   handleDefenders();
+  handleProjectiles();
   handleEnemies();
   handleGameStatus();
   frame++; // time count is increasing during the game
