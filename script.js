@@ -140,8 +140,8 @@ class Defender {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = cellSize;
-    this.height = cellSize;
+    this.width = cellSize - cellGap * 2; // so defenders don't collide with enemies from another lane
+    this.height = cellSize -cellGap * 2;
     this.shooting = false;
     this.health = 100; // defenders lose health when they collide with enemies
     this.projectiles = []; 
@@ -173,10 +173,10 @@ class Defender {
 
 canvas.addEventListener('click', function () { 
   // the value of the closest horizontal position to the left
-  const gridPositionX = mouse.x - (mouse.x % cellSize);
+  const gridPositionX = mouse.x - (mouse.x % cellSize) + cellGap;
 
   // the value of the closest vertical position to the top
-  const gridPositionY = mouse.y - (mouse.y % cellSize);
+  const gridPositionY = mouse.y - (mouse.y % cellSize) + cellGap;
 
   // we don't place it on the grid if it's inside top area
   if (gridPositionY < cellSize) return;
@@ -205,6 +205,13 @@ function handleDefenders() {
 
     defenders[i].draw();
     defenders[i].update();
+
+    // if there is an enemy on the same position with defender, defender will shoot
+    if (enemyPositions.indexOf(defenders[i].y !== -1)) {
+      defenders[i].shooting = true;
+    } else {
+      defenders[i].shooting = false;
+    }
 
     for (let j = 0; j < enemies.length; j++) {
       if (defenders[i] && collision(defenders[i], enemies[j])) {
@@ -274,13 +281,15 @@ function handleEnemies() {
       score += gainedResources;
 
       // remove enemy coordinate 
-      const findEnemyIndex = enemyPositions.indexOf(enemies[i]);
+      const findEnemyIndex = enemyPositions.indexOf(enemies[i].y);
       enemyPositions.splice(findEnemyIndex, 1);
 
       // remove enemy 
       enemies.splice(i, 1);
       // reduce index so we don't miss the next enemy once the current one is removed
       i--;
+
+      console.log(enemyPositions)
     }
 
   }
