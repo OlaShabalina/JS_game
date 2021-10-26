@@ -12,6 +12,7 @@ let numberOfResources = 400; // how much resources we give to the player initial
 let enemiesInterval = 600; // how often new enemies appear on the grid  
 let frame = 0; // time count for the game
 let gameOver = false;
+let score = 0; // points 
 
 const gameGrid = [];
 const defenders = [];
@@ -155,11 +156,17 @@ class Defender {
     ctx.fillText( Math.floor(this.health), this.x + 20, this.y + 30 ); // show health 
   }
   update() {
-    this.timer++;
+    // only use projectiles if there is enemy on the line
+    if (this.shooting) {
 
-    // every time when times exceeds 100 new projectile is added to the defender with the same coordinates as defender
-    if (this.timer % 100 === 0) {
-      projectiles.push(new Projectile(this.x + 70, this.y + 50));
+      this.timer++;
+
+      // every time when times exceeds 100 new projectile is added to the defender with the same coordinates as defender
+      if (this.timer % 100 === 0) {
+        projectiles.push(new Projectile(this.x + 70, this.y + 50));
+      } 
+    } else {
+      this.timer = 0;
     }
   }
 }
@@ -256,6 +263,26 @@ function handleEnemies() {
     if (enemies[i].x < 0) {
       gameOver = true;
     }
+
+    // remove enemies from the grid if their health is less than 0
+    if (enemies[i].health <= 0) {
+
+      // giving points(resources) to defenders once they bit an enemy (for enemy with 100 will give 10)
+      const gainedResources = enemies[i].maxHealth/10;
+      numberOfResources += gainedResources;
+      // points for each enemy will be equal to resources acquired 
+      score += gainedResources;
+
+      // remove enemy coordinate 
+      const findEnemyIndex = enemyPositions.indexOf(enemies[i]);
+      enemyPositions.splice(findEnemyIndex, 1);
+
+      // remove enemy 
+      enemies.splice(i, 1);
+      // reduce index so we don't miss the next enemy once the current one is removed
+      i--;
+    }
+
   }
 
   // every time frame count is passing 100, we add a new enemy to the game
@@ -276,7 +303,8 @@ function handleEnemies() {
 function handleGameStatus() {
   ctx.fillStyle = 'gold';
   ctx.font = '30px Cairo';
-  ctx.fillText('Resources: ' + numberOfResources, 20, 50);
+  ctx.fillText('Score: ' + score, 20, 40);
+  ctx.fillText('Resources: ' + numberOfResources, 20, 80);
 
   // game over declaration
   if (gameOver) {
