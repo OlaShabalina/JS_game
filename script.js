@@ -109,6 +109,19 @@ function handleProjectiles() {
     projectiles[i].update();
     projectiles[i].draw();
 
+    // checking for collusion between projectiles and enemies
+    for (let j = 0; j < enemies.length; j++) {
+
+      if (enemies[j] && projectiles[i] && collision(projectiles[i], enemies[j])) {
+        // if projectiles and enemies collide, we reduce the enemy health by projectiles power amount
+        enemies[j].health -= projectiles[i].power;
+        // once projectile hits the enemy, we want to remove it from the projectiles array as it's already used
+        projectiles.splice(i, 1);
+        // reduce index so we don't miss the next projectile after the removed one
+        i--;
+      }
+    }
+
     // make sure we can only hit enemies when they are fully visible on the screen
     if (projectiles[i] && projectiles[i].x > (canvas.width - cellSize)) {
 
@@ -116,8 +129,6 @@ function handleProjectiles() {
       projectiles.splice(i, 1);
       // once projectile is removed we make sure we don't skip the next one
       i--; 
-
-      console.log('projectiles ' + projectiles.length);
     }
   }
 }
@@ -189,12 +200,12 @@ function handleDefenders() {
     defenders[i].update();
 
     for (let j = 0; j < enemies.length; j++) {
-      if (collision(defenders[i], enemies[j])) {
+      if (defenders[i] && collision(defenders[i], enemies[j])) {
 
         // if there is a collusion, enemy will stop moving beond defender position
         enemies[j].movement = 0;
         // and defender will start losing health
-        defenders[i].health -= 0.2;
+        defenders[i].health -= 1;
       }
 
       //  if defender has no health left we remove that defender from the array
