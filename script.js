@@ -13,12 +13,14 @@ let enemiesInterval = 600; // how often new enemies appear on the grid
 let frame = 0; // time count for the game
 let gameOver = false;
 let score = 0; // points 
+let winningScore = 50;
 
 const gameGrid = [];
 const defenders = [];
 const enemies = [];
 const enemyPositions = [];
 const projectiles = [];
+const resources = [];
 
 //  mouse 
 const mouse = {
@@ -293,7 +295,7 @@ function handleEnemies() {
   }
 
   // every time frame count is passing 100, we add a new enemy to the game
-  if (frame % enemiesInterval === 0) {
+  if (frame % enemiesInterval === 0 && score < winningScore) {
     let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize;
     // adding new enemy to the grid
     enemies.push(new Enemy(verticalPosition));
@@ -310,7 +312,7 @@ const amounts = [20, 30, 40];
 
 class Resource {
   constructor() {
-    this.x = Mth.random() * (canvas.width - cellSize);
+    this.x = Math.random() * (canvas.width - cellSize);
     // resources will be sitting on rows to avoid clipping issues 
     this.y = (Math.floor(Math.random() * 5) + 1) * cellSize + 25;
     this.height = cellSize * 0.6;
@@ -321,9 +323,27 @@ class Resource {
   draw(){
     ctx.fillStyle = 'blue';
     ctx.fillRect(this.x, this.y, this.width, this.height);
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'white';
     ctx.font = '20px Cairo';
-    this.fillText(this.amount, this.x + 15, this.y + 25)
+    ctx.fillText(this.amount, this.x + 15, this.y + 25)
+  }
+}
+
+function handleResources(){
+  // every 500 frames there will be new resourse available
+  if ( frame % 500 === 0 && score < winningScore ){
+    resources.push(new Resource());
+  }
+
+  for (let i = 0; i < resources.length; i++) {
+    resources[i].draw();
+
+    // collecting resources on mouseover
+    if (resources[i] && mouse.x && mouse.y && collision(resources[i], mouse)){
+      numberOfResources += resources[i].amount;
+      resources.splice(i, 1);
+      i--;
+    }
   }
 }
 
@@ -351,6 +371,7 @@ function animate() {
   ctx.fillRect(0,0, controlsBar.width, controlsBar.height); // starting from top left corner till the width of game board
   handleGameGrid();
   handleDefenders();
+  handleResources();
   handleProjectiles();
   handleEnemies();
   handleGameStatus();
