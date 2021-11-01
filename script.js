@@ -8,7 +8,7 @@ canvas.height = 600;
 // global variables
 const cellSize = 100; // each sell in the game grid will be 100 * 100 px
 const cellGap = 3; // gap between cells
-let numberOfResources = 400; // how much resources we give to the player initially
+let numberOfResources = 500; // how much resources we give to the player initially
 let enemiesInterval = 600; // how often new enemies appear on the grid  
 let frame = 0; // time count for the game
 let gameOver = false;
@@ -207,7 +207,7 @@ function handleDefenders() {
     defenders[i].update();
 
     // if there is an enemy on the same position with defender, defender will shoot
-    if (enemyPositions.indexOf(defenders[i].y !== -1)) {
+    if ( enemyPositions.indexOf(defenders[i].y - 3) !== -1 ) {
       defenders[i].shooting = true;
     } else {
       defenders[i].shooting = false;
@@ -288,8 +288,6 @@ function handleEnemies() {
       enemies.splice(i, 1);
       // reduce index so we don't miss the next enemy once the current one is removed
       i--;
-
-      console.log(enemyPositions)
     }
 
   }
@@ -301,12 +299,34 @@ function handleEnemies() {
     enemies.push(new Enemy(verticalPosition));
     // giving that new enemy a position by adding his vertical position to the enemy position array
     enemyPositions.push(verticalPosition);
+    console.log(enemyPositions)
     if (enemiesInterval > 120) enemiesInterval -= 50; // reduce interval as the time progresses
   }
 }
 
 
 // resources
+const amounts = [20, 30, 40];
+
+class Resource {
+  constructor() {
+    this.x = Mth.random() * (canvas.width - cellSize);
+    // resources will be sitting on rows to avoid clipping issues 
+    this.y = (Math.floor(Math.random() * 5) + 1) * cellSize + 25;
+    this.height = cellSize * 0.6;
+    this.width = cellSize * 0.6;
+
+    this.amount = amounts[Math.floor(Math.random() * amounts.length)];
+  }
+  draw(){
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Cairo';
+    this.fillText(this.amount, this.x + 15, this.y + 25)
+  }
+}
+
 // utilities
 
 function handleGameStatus() {
