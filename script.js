@@ -13,7 +13,7 @@ let enemiesInterval = 600; // how often new enemies appear on the grid
 let frame = 0; // time count for the game
 let gameOver = false;
 let score = 0; // points 
-let winningScore = 50;
+let winningScore = 10;
 
 const gameGrid = [];
 const defenders = [];
@@ -358,8 +358,18 @@ function handleGameStatus() {
   // game over declaration
   if (gameOver) {
     ctx.fillStyle = 'black';
-    ctx.font = '100px Cairo'
+    ctx.font = '100px Cairo';
     ctx.fillText('GAME OVER', 200, 330);
+  }
+
+  // display winning message - if score is more than winning score and all the enemies are refeated
+  if (score >= winningScore && enemies.length === 0) {
+    ctx.fillStyle = 'black';
+    ctx.font = '60px Cairo';
+    ctx.fillText('LEVEL COMPLETE', 200, 330);
+    ctx.font = '30px Cairo';
+    ctx.fillText('You win with ' + score + ' points!', 200, 360);
+
   }
 }
 
@@ -395,3 +405,8 @@ function collision(first, second) {
     return true;
   }
 }
+
+// fixing the issue of mouse not having correct cordinates by creating resize event
+window.addEventListener('resize', function () { 
+  canvasPosition = canvas.getBoundingClientRect();
+ })
